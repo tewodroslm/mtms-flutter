@@ -3,16 +3,15 @@ import 'package:json_annotation/json_annotation.dart';
 part 'auth_response.g.dart';
 
 @JsonSerializable(
-  nullable: false,
   fieldRename: FieldRename.snake,
 )
 class AuthenticationResponse {
-  String accessToken;
+  String access_token;
   String tokenType;
   String expiresAt;
 
   AuthenticationResponse(
-      {this.accessToken = '', this.tokenType = '', this.expiresAt = ''});
+      {this.access_token = '', this.tokenType = '', this.expiresAt = ''});
 
   factory AuthenticationResponse.fromJson(Map<String, dynamic> json) =>
       _$AuthenticationResponseFromJson(json);

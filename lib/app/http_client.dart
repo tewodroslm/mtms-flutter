@@ -4,7 +4,7 @@ import 'package:dio/dio.dart';
 // final String API_BASE_URL = 'http://192.168.1.7';
 
 // ignore: non_constant_identifier_names
-final String API_BASE_URL = 'https://app.carlomigueldy.com';
+const String API_BASE_URL = 'https://damp-coast-22655.herokuapp.com';
 
 /// Dio HTTP client, accessible globally with a single [API_BASE_URL]
 ///
