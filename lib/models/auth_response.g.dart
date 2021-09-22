@@ -9,15 +9,13 @@ part of 'auth_response.dart';
 AuthenticationResponse _$AuthenticationResponseFromJson(
         Map<String, dynamic> json) =>
     AuthenticationResponse(
-      access_token: json['access_token'] as String? ?? '',
-      tokenType: json['token_type'] as String? ?? '',
-      expiresAt: json['expires_at'] as String? ?? '',
+      access_token: json['access_token'] as String,
+      driver: Driver.fromJson(json['driver'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$AuthenticationResponseToJson(
         AuthenticationResponse instance) =>
     <String, dynamic>{
       'access_token': instance.access_token,
-      'token_type': instance.tokenType,
-      'expires_at': instance.expiresAt,
+      'driver': instance.driver.toJson(),
     };

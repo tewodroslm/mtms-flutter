@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:mtms/models/ticket.dart';
 import 'package:mtms/ui/auth/login_reg.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:observable_ish/observable_ish.dart';
@@ -13,26 +16,7 @@ import '../models/driver.dart';
 
 @injectable
 class AuthenticationService with ReactiveServiceMixin {
-  final Future<SharedPreferences> _localStorage =
-      SharedPreferences.getInstance();
-
-  AuthenticationService() {
-    listenToReactiveValues([_token]);
-    getToken();
-  }
-
-  /// @return [String] token
-  final RxValue<String> _token = RxValue<String>("");
-  String get token => _token.value;
-  bool get loggedIn => _token.value.isNotEmpty ? true : false;
-
-  final RxValue<bool> _tokenval = RxValue<bool>(false);
-  // bool get tokenva => _tokenval.value;
-  // /// @return [User] user
-  // RxValue<User> _user = RxValue<User>(initial: null);
-  // User get user => _user.value;
-
-  static const authTokenKey = 'authtoken';
+  AuthenticationService() {}
 
   /// Login with licence and password.
   ///
@@ -51,30 +35,24 @@ class AuthenticationService with ReactiveServiceMixin {
           "password": password,
         },
       );
+      final SharedPreferences localStorage =
+          await SharedPreferences.getInstance();
 
       AuthenticationResponse data =
           AuthenticationResponse.fromJson(response.data);
       print("Api returned this ==================== ** ");
       print(data.access_token);
 
-      _token.value = data.access_token;
-      setToken(data.access_token);
-      HomeView.authc = true;
+      localStorage.setString('authtoken', data.access_token);
 
-      Driver driverData = Driver.fromJson(response.data);
-      print(driverData.name);
-      print(driverData.working_route);
-      setDriver(driverData);
-      Fluttertoast.showToast(
-          msg: driverData.name,
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.CENTER,
-          timeInSecForIosWeb: 1,
-          backgroundColor: Colors.red,
-          textColor: Colors.white,
-          fontSize: 16.0);
-      // await fetchUser();
-      getToken();
+      localStorage.setString("dname", data.driver.name);
+      localStorage.setInt("did", data.driver.id);
+      localStorage.setString("dlicence", data.driver.licence);
+      localStorage.setString("dwr", data.driver.working_route);
+      localStorage.setString("dcreatedat", data.driver.created_at);
+      localStorage.setInt("dtype", data.driver.driver_type);
+      localStorage.setInt("dcaro", data.driver.car_owner);
+
       print('[AuthService] Logged in');
 
       return response;
@@ -83,6 +61,56 @@ class AuthenticationService with ReactiveServiceMixin {
     }
   }
 
+  Future getTicket(
+      {required String token,
+      required int driverid,
+      required String startingpoint,
+      required String destination,
+      required int amount,
+      required int canceled}) async {
+    print('------------ SP ---------------');
+    print(startingpoint);
+    print('------------ Dp ---------------');
+    print(destination);
+    print('------------ Am ---------------');
+    print(amount);
+    print('------------ Is Canceled ---------------');
+    print(canceled);
+    print('------------ Driver Id ---------------');
+    print(driverid);
+    print('---- token ____');
+    print(token);
+    print('------------ ENDND ---------------');
+
+    try {
+      print('Buying ticket');
+
+      dio.options.headers['Authorization'] = "Bearer $token";
+
+      Response response = await dio.post('/api/get-ticket', data: {
+        'starting_point': startingpoint,
+        'destination': destination,
+        'amount': amount,
+        'driver_id': driverid,
+        'canceled': canceled
+      });
+      print("Inside of the Try catch");
+      Ticket data = Ticket.fromJson(response.data);
+      print("Api returned this ==================== ** ");
+      print(data.starting_point);
+      print(data.destination);
+      Fluttertoast.showToast(
+          msg: data.starting_point,
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.CENTER,
+          timeInSecForIosWeb: 1,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+          fontSize: 16.0);
+    } on DioError catch (e) {
+      print(e.toString());
+    }
+  }
   // "driver": {
   //   "id": 1,
   //   "name": "driver1",
@@ -107,72 +135,34 @@ class AuthenticationService with ReactiveServiceMixin {
       deleteToken();
       // _user.value = User(id: 0);
     } on DioError catch (e) {
-      handleError(e);
+      print(e.toString());
     }
   }
 
   /// Use the authorization header with Bearer token.
   ///
   /// @return [Options]
-  Options get authorizationHeader {
-    return Options(
-      headers: {
-        "Authorization": "Bearer ${_token.value}",
-        "accept": "application/json",
-      },
-    );
-  }
-
-  /// Sets the authentication token in the state and also locally
-  /// using [SharedPreferences]
-  ///
-  /// @param string [token]
-  /// @return void
-  void setToken(String token) async {
-    final SharedPreferences localStorage = await _localStorage;
-    _token.value = token;
-    localStorage.setString('authtoken', token);
-  }
-
-  void setDriver(Driver driver) async {
-    final SharedPreferences ls = await _localStorage;
-    ls.setString("dname", driver.name);
-    ls.setInt("did", driver.id);
-    ls.setString("dlicence", driver.licence);
-    ls.setString("dwr", driver.working_route);
-    ls.setString("dcreatedat", driver.created_at);
-    ls.setInt("dtype", driver.driver_type);
-    ls.setInt("dcaro", driver.car_owner);
-  }
-
-  static Future<bool> getToken() async {
-    final SharedPreferences locl = await SharedPreferences.getInstance();
-    bool tv = false;
-    if (locl.containsKey(authTokenKey)) {
-      tv = true;
-    } else {
-      tv = false;
-    }
-    return tv;
-  }
+  // Options get authorizationHeader {
+  //   return Options(
+  //     headers: {
+  //       "Authorization": "Bearer ${_token.value}",
+  //       "accept": "application/json",
+  //     },
+  //   );
+  // }
 
   /// Destroy the auth token from state and in [SharedPreferences]
   ///
   /// @return void
   void deleteToken() async {
-    final SharedPreferences localStorage = await _localStorage;
-    _tokenval.value = false;
-    localStorage.remove(authTokenKey);
-    if (localStorage.containsKey(authTokenKey)) {
-      Fluttertoast.showToast(
-          msg: localStorage.getString(authTokenKey) ?? '',
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.CENTER,
-          timeInSecForIosWeb: 1,
-          backgroundColor: Colors.red,
-          textColor: Colors.white,
-          fontSize: 16.0);
-    }
+    // Fluttertoast.showToast(
+    //     msg: localStorage.getString(authTokenKey) ?? '',
+    //     toastLength: Toast.LENGTH_SHORT,
+    //     gravity: ToastGravity.CENTER,
+    //     timeInSecForIosWeb: 1,
+    //     backgroundColor: Colors.red,
+    //     textColor: Colors.white,
+    //     fontSize: 16.0);
   }
 
   /// A callback function receiving [DioError] as first parameter

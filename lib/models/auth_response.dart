@@ -1,17 +1,17 @@
 import 'package:json_annotation/json_annotation.dart';
+import 'package:mtms/models/driver.dart';
 
 part 'auth_response.g.dart';
 
-@JsonSerializable(
-  fieldRename: FieldRename.snake,
-)
+@JsonSerializable(explicitToJson: true)
 class AuthenticationResponse {
-  String access_token;
-  String tokenType;
-  String expiresAt;
+  final String access_token;
+  final Driver driver;
 
-  AuthenticationResponse(
-      {this.access_token = '', this.tokenType = '', this.expiresAt = ''});
+  const AuthenticationResponse({
+    required this.access_token,
+    required this.driver,
+  });
 
   factory AuthenticationResponse.fromJson(Map<String, dynamic> json) =>
       _$AuthenticationResponseFromJson(json);

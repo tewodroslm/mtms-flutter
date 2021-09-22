@@ -7,14 +7,8 @@ import '../../../services/authentication_service.dart'
 class HomeViewModel extends ReactiveViewModel {
   HomeViewModel() {
     print("Home view model loaded! ");
-    print("Home view model loaded AgAiN! {{ $tokenval }} ");
   }
   final _authService = locator<AuthenticationService>();
-
-  // User get user => _authService.user;
-  String get token => _authService.token;
-  Future<bool> tokenval = AuthenticationService.getToken();
-  bool get loggedIn => _authService.loggedIn;
 
   @override
   List<ReactiveServiceMixin> get reactiveServices => [_authService];
