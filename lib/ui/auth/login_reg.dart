@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:mtms/ui/home/home.dart';
+import 'package:mtms/services/authentication_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:mtms/ui/home/myticketsnip.dart';
 import 'package:stacked/stacked.dart';
 import './login_regviewmodel.dart';
 
@@ -7,6 +9,7 @@ class HomeView extends StatelessWidget {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final _licenceController = TextEditingController(text: 'driver112');
   final _passwordController = TextEditingController(text: 'password');
+  static bool authc = false;
 
   @override
   Widget build(BuildContext context) {
@@ -17,15 +20,18 @@ class HomeView extends StatelessWidget {
           appBar: AppBar(
             title: const Text('Home View'),
             centerTitle: true,
+            backgroundColor: Colors.indigo,
           ),
+          backgroundColor: Colors.indigo,
           body: SizedBox(
             width: double.infinity,
             child: Form(
               key: _formKey,
               child: Padding(
                 padding: const EdgeInsets.all(8.0),
-                child:
-                    model.tokenval ? _loginForm(model) : _loggedInWidget(model),
+                child: authc
+                    ? _loggedInWidget(model, context)
+                    : _loginForm(model, context),
               ),
             ),
           ),
@@ -34,26 +40,40 @@ class HomeView extends StatelessWidget {
     );
   }
 
-  Column _loggedInWidget(HomeViewModel model) {
+  Column _loggedInWidget(HomeViewModel model, BuildContext context) {
     return Column(
       children: [
-        !model.isBusy
-            ? ElevatedButton(
-                child: const Text('Logout'),
-                onPressed: () {
-                  // model.logout();
-                },
-              )
-            : const Center(
-                child: CircularProgressIndicator(),
-              ),
-        const MyStatefulWidget(),
-        // Text(model.token),
+        // !model.isBusy
+        //     ? ElevatedButton(
+        //         child: const Text('Logout'),
+        //         onPressed: () {
+        //           // model.logout();
+        //         },
+        //       )
+        //     : const Center(
+        //         child: CircularProgressIndicator(),
+        //       ),
+
+        // When no ticket
+        // NoTicketPage(),
+
+        // When there is ticket
+        const TicketSnip(),
+        ElevatedButton(
+          child: const Text('Log out!'),
+          onPressed: () {
+            model.logout();
+            _loginForm(model, context);
+          },
+        ), // Text(model.token),
+        Container(
+          child: Text(model.token),
+        ),
       ],
     );
   }
 
-  Column _loginForm(HomeViewModel model) {
+  Column _loginForm(HomeViewModel model, BuildContext context) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -88,6 +108,74 @@ class HomeView extends StatelessWidget {
                       licence: _licenceController.text,
                       password: _passwordController.text,
                     );
+                    // Navigator.push(
+                    //   context,
+                    //   MaterialPageRoute(builder: (context) => SecondRoute()),
+                    // );
+                  }
+                },
+              )
+            : const Center(
+                child: CircularProgressIndicator(),
+              ),
+        const SizedBox(height: 20),
+        TextButton(
+          onPressed: () {
+            //action
+            _regForm(model, context);
+          },
+          child: const Text(
+            'Register here', //title
+            textAlign: TextAlign.end, //aligment
+          ),
+        ),
+        Container(
+          child: Text(model.token),
+        ),
+      ],
+    );
+  }
+
+  // Register Form
+  Column _regForm(HomeViewModel model, BuildContext context) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        TextFormField(
+          controller: _licenceController,
+          decoration: const InputDecoration(
+            labelText: 'LIcence',
+            border: OutlineInputBorder(),
+          ),
+          validator: (value) =>
+              value!.isEmpty ? 'This field is required' : null,
+        ),
+        const SizedBox(height: 10),
+        TextFormField(
+          obscureText: true,
+          controller: _passwordController,
+          decoration: const InputDecoration(
+            labelText: 'Password',
+            border: OutlineInputBorder(),
+          ),
+          validator: (value) =>
+              value!.isEmpty ? 'This field is required' : null,
+        ),
+        const SizedBox(height: 10),
+        !model.isBusy
+            ? ElevatedButton(
+                child: const Text('Register'),
+                onPressed: () {
+                  if (_formKey.currentState!.validate()) {
+                    model.login(
+                      licence: _licenceController.text,
+                      password: _passwordController.text,
+                    );
+                    // Navigator.push(
+                    //   context,
+                    //   MaterialPageRoute(builder: (context) => SecondRoute()),
+                    // );
                   }
                 },
               )

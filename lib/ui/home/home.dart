@@ -1,23 +1,45 @@
-// import 'package:flutter/material.dart';
-// import 'package:shared_preferences/shared_preferences.dart';
-
-// /// This is the stateful widget that the main application instantiates.
 import 'package:flutter/material.dart';
-import 'package:stacked/stacked.dart';
-
+import 'package:mtms/ui/home/mainpage.dart';
 import 'package:flutter/widgets.dart';
-import 'package:mtms/ui/auth/login_regviewmodel.dart';
+// No ticket class
 
-class MyStatefulWidget extends StatefulWidget {
-  const MyStatefulWidget({Key? key}) : super(key: key);
+class NoTicketPage extends StatefulWidget {
+  const NoTicketPage({Key? key}) : super(key: key);
 
   @override
-  State<MyStatefulWidget> createState() => _MyStatefulWidgetState();
+  State<NoTicketPage> createState() => _MyStatefulWidgetState();
 }
 
-class _MyStatefulWidgetState extends State<MyStatefulWidget> {
+class _MyStatefulWidgetState extends State<NoTicketPage> {
   @override
   Widget build(BuildContext context) {
-    return const Text("Home");
+    return Container(
+      padding: const EdgeInsets.all(32),
+      color: Colors.indigo,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          /*2*/
+          Container(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: const Text(
+              "Get ticket! You haven't bought ticket.",
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          ElevatedButton(
+              child: const Text('Get Ticket'),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const MainContentPage()),
+                );
+              }),
+        ],
+      ),
+    );
   }
 }

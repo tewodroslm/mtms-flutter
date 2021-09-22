@@ -1,11 +1,15 @@
+import 'package:flutter/material.dart';
+import 'package:mtms/ui/auth/login_reg.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:observable_ish/observable_ish.dart';
 import 'package:injectable/injectable.dart';
 import 'package:stacked/stacked.dart';
 import 'package:dio/dio.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 import '../app/http_client.dart';
 import '../models/auth_response.dart';
+import '../models/driver.dart';
 
 @injectable
 class AuthenticationService with ReactiveServiceMixin {
@@ -23,12 +27,12 @@ class AuthenticationService with ReactiveServiceMixin {
   bool get loggedIn => _token.value.isNotEmpty ? true : false;
 
   final RxValue<bool> _tokenval = RxValue<bool>(false);
-  bool get tokenva => _tokenval.value;
+  // bool get tokenva => _tokenval.value;
   // /// @return [User] user
   // RxValue<User> _user = RxValue<User>(initial: null);
   // User get user => _user.value;
 
-  static const authTokenKey = 'auth.token';
+  static const authTokenKey = 'authtoken';
 
   /// Login with licence and password.
   ///
@@ -40,7 +44,6 @@ class AuthenticationService with ReactiveServiceMixin {
   }) async {
     try {
       print('[AuthService] Logging in...');
-      //https: //damp-coast-22655.herokuapp.com/api/login-driver
       Response response = await dio.post(
         '/api/login-driver',
         data: {
@@ -56,6 +59,20 @@ class AuthenticationService with ReactiveServiceMixin {
 
       _token.value = data.access_token;
       setToken(data.access_token);
+      HomeView.authc = true;
+
+      Driver driverData = Driver.fromJson(response.data);
+      print(driverData.name);
+      print(driverData.working_route);
+      setDriver(driverData);
+      Fluttertoast.showToast(
+          msg: driverData.name,
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.CENTER,
+          timeInSecForIosWeb: 1,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+          fontSize: 16.0);
       // await fetchUser();
       getToken();
       print('[AuthService] Logged in');
@@ -66,39 +83,33 @@ class AuthenticationService with ReactiveServiceMixin {
     }
   }
 
-  /// Fetch the current authenticated user.
-  ///
-  // /// @return void
-  // Future fetchUser() async {
-  //   try {
-  //     Response response = await dio.get(
-  //       '/api/auth/user',
-  //       options: authorizationHeader,
-  //     );
+  // "driver": {
+  //   "id": 1,
+  //   "name": "driver1",
+  //   "licence": "driver111",
+  //   "working_route": "Bishoftu",
+  //   "driver_type": 1,
+  //   "car_owner": null,
+  //   "created_at": "2021-09-13T17:58:29.000000Z",
+  //   "updated_at": "2021-09-13T17:58:29.000000Z"
+  // },
 
-  //     User data = User.fromJson(response.data);
-  //     _user.value = data;
-  //   } on DioError catch (e) {
-  //     handleError(e);
-  //   }
-  // }
+  ///Logs out the user.
 
-  /// Logs out the user.
-  ///
   /// @return void
-  // Future logout() async {
-  //   try {
-  //     // await dio.get(
-  //     //   '/api/logout',
-  //     //   options: authorizationHeader,
-  //     // );
+  Future logout() async {
+    try {
+      // await dio.get(
+      //   '/api/logout',
+      //   options: authorizationHeader,
+      // );
 
-  //     deleteToken();
-  //     // _user.value = User(id: 0);
-  //   } on DioError catch (e) {
-  //     handleError(e);
-  //   }
-  // }
+      deleteToken();
+      // _user.value = User(id: 0);
+    } on DioError catch (e) {
+      handleError(e);
+    }
+  }
 
   /// Use the authorization header with Bearer token.
   ///
@@ -120,16 +131,29 @@ class AuthenticationService with ReactiveServiceMixin {
   void setToken(String token) async {
     final SharedPreferences localStorage = await _localStorage;
     _token.value = token;
-    localStorage.setString(authTokenKey, token);
+    localStorage.setString('authtoken', token);
   }
 
-  void getToken() async {
-    final SharedPreferences locl = await _localStorage;
+  void setDriver(Driver driver) async {
+    final SharedPreferences ls = await _localStorage;
+    ls.setString("dname", driver.name);
+    ls.setInt("did", driver.id);
+    ls.setString("dlicence", driver.licence);
+    ls.setString("dwr", driver.working_route);
+    ls.setString("dcreatedat", driver.created_at);
+    ls.setInt("dtype", driver.driver_type);
+    ls.setInt("dcaro", driver.car_owner);
+  }
+
+  static Future<bool> getToken() async {
+    final SharedPreferences locl = await SharedPreferences.getInstance();
+    bool tv = false;
     if (locl.containsKey(authTokenKey)) {
-      _tokenval.value = true;
+      tv = true;
     } else {
-      _tokenval.value = false;
+      tv = false;
     }
+    return tv;
   }
 
   /// Destroy the auth token from state and in [SharedPreferences]
@@ -137,8 +161,18 @@ class AuthenticationService with ReactiveServiceMixin {
   /// @return void
   void deleteToken() async {
     final SharedPreferences localStorage = await _localStorage;
-    _token.value = "";
+    _tokenval.value = false;
     localStorage.remove(authTokenKey);
+    if (localStorage.containsKey(authTokenKey)) {
+      Fluttertoast.showToast(
+          msg: localStorage.getString(authTokenKey) ?? '',
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.CENTER,
+          timeInSecForIosWeb: 1,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+          fontSize: 16.0);
+    }
   }
 
   /// A callback function receiving [DioError] as first parameter

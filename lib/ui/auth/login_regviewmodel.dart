@@ -13,7 +13,7 @@ class HomeViewModel extends ReactiveViewModel {
 
   // User get user => _authService.user;
   String get token => _authService.token;
-  bool get tokenval => _authService.tokenva;
+  Future<bool> tokenval = AuthenticationService.getToken();
   bool get loggedIn => _authService.loggedIn;
 
   @override
@@ -36,11 +36,11 @@ class HomeViewModel extends ReactiveViewModel {
     setBusy(false);
   }
 
-  // void logout() async {
-  //   setBusy(true);
+  void logout() async {
+    setBusy(true);
 
-  //   await _authService.logout();
+    await _authService.logout();
 
-  //   setBusy(false);
-  // }
+    setBusy(false);
+  }
 }
