@@ -1,10 +1,6 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:mtms/models/ticket.dart';
-import 'package:mtms/ui/auth/login_reg.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:observable_ish/observable_ish.dart';
 import 'package:injectable/injectable.dart';
 import 'package:stacked/stacked.dart';
 import 'package:dio/dio.dart';
@@ -12,7 +8,6 @@ import 'package:fluttertoast/fluttertoast.dart';
 
 import '../app/http_client.dart';
 import '../models/auth_response.dart';
-import '../models/driver.dart';
 
 @injectable
 class AuthenticationService with ReactiveServiceMixin {
@@ -61,6 +56,39 @@ class AuthenticationService with ReactiveServiceMixin {
     }
   }
 
+  Future payFine(
+      {required String token,
+      required int driverid,
+      required int amount,
+      required String bankaccount}) async {
+    try {
+      print('Buying ticket');
+      print('=====================');
+      print('Amount is $token');
+      print('=====================');
+      dio.options.headers['Authorization'] = "Bearer $token";
+
+      Response response = await dio.post('/api/pay-fine', data: {
+        'amount': amount,
+        'driver_id': driverid,
+        'bank_account': bankaccount
+      });
+      print('=====================');
+      print('Fine paid Successfuly');
+      print('=====================');
+      Fluttertoast.showToast(
+          msg: 'Paid Successfuly',
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.CENTER,
+          timeInSecForIosWeb: 1,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+          fontSize: 16.0);
+    } on DioError catch (e) {
+      print(e.toString());
+    }
+  }
+
   Future getTicket(
       {required String token,
       required int driverid,
@@ -82,6 +110,9 @@ class AuthenticationService with ReactiveServiceMixin {
     print(token);
     print('------------ ENDND ---------------');
 
+    final SharedPreferences localStorage =
+        await SharedPreferences.getInstance();
+
     try {
       print('Buying ticket');
 
@@ -99,70 +130,37 @@ class AuthenticationService with ReactiveServiceMixin {
       print("Api returned this ==================== ** ");
       print(data.starting_point);
       print(data.destination);
-      Fluttertoast.showToast(
-          msg: data.starting_point,
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.CENTER,
-          timeInSecForIosWeb: 1,
-          backgroundColor: Colors.red,
-          textColor: Colors.white,
-          fontSize: 16.0);
+
+      localStorage.setString('ticket.startingpoint', data.starting_point);
+      localStorage.setString('ticket.destination', data.destination);
+      localStorage.setString('cost', data.amount);
+      localStorage.setString('ticket.createdat', data.created_at);
+      localStorage.setInt('ticket.canceled', data.canceled);
     } on DioError catch (e) {
       print(e.toString());
     }
   }
-  // "driver": {
-  //   "id": 1,
-  //   "name": "driver1",
-  //   "licence": "driver111",
-  //   "working_route": "Bishoftu",
-  //   "driver_type": 1,
-  //   "car_owner": null,
-  //   "created_at": "2021-09-13T17:58:29.000000Z",
-  //   "updated_at": "2021-09-13T17:58:29.000000Z"
-  // },
 
   ///Logs out the user.
 
   /// @return void
   Future logout() async {
-    try {
-      // await dio.get(
-      //   '/api/logout',
-      //   options: authorizationHeader,
-      // );
+    final SharedPreferences localStorage =
+        await SharedPreferences.getInstance();
 
-      deleteToken();
-      // _user.value = User(id: 0);
+    try {
+      localStorage.remove('authtoken');
+
+      localStorage.remove("dname");
+      localStorage.remove("did");
+      localStorage.remove("dlicence");
+      localStorage.remove("dwr");
+      localStorage.remove("dcreatedat");
+      localStorage.remove("dtype");
+      localStorage.remove("dcaro");
     } on DioError catch (e) {
       print(e.toString());
     }
-  }
-
-  /// Use the authorization header with Bearer token.
-  ///
-  /// @return [Options]
-  // Options get authorizationHeader {
-  //   return Options(
-  //     headers: {
-  //       "Authorization": "Bearer ${_token.value}",
-  //       "accept": "application/json",
-  //     },
-  //   );
-  // }
-
-  /// Destroy the auth token from state and in [SharedPreferences]
-  ///
-  /// @return void
-  void deleteToken() async {
-    // Fluttertoast.showToast(
-    //     msg: localStorage.getString(authTokenKey) ?? '',
-    //     toastLength: Toast.LENGTH_SHORT,
-    //     gravity: ToastGravity.CENTER,
-    //     timeInSecForIosWeb: 1,
-    //     backgroundColor: Colors.red,
-    //     textColor: Colors.white,
-    //     fontSize: 16.0);
   }
 
   /// A callback function receiving [DioError] as first parameter

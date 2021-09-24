@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mtms/ui/auth/register.dart';
 import 'package:mtms/ui/home/myticketsnip.dart';
 import 'package:stacked/stacked.dart';
 import './login_regviewmodel.dart';
@@ -27,7 +28,7 @@ class CheckAuth extends StatefulWidget {
 class _CheckAuthState extends State<CheckAuth> {
   bool isAuth = false;
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  final _licenceController = TextEditingController(text: 'driver112');
+  final _licenceController = TextEditingController(text: 'abc123');
   final _passwordController = TextEditingController(text: 'password');
   @override
   void initState() {
@@ -50,22 +51,29 @@ class _CheckAuthState extends State<CheckAuth> {
     return ViewModelBuilder<HomeViewModel>.reactive(
       viewModelBuilder: () => HomeViewModel(),
       builder: (context, model, child) => SafeArea(
-        child: Scaffold(
-          appBar: AppBar(
-            title: const Text('Home View'),
-            centerTitle: true,
-            backgroundColor: Colors.indigo,
-          ),
-          backgroundColor: Colors.indigo,
-          body: SizedBox(
-            width: double.infinity,
-            child: Form(
-              key: _formKey,
-              child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: isAuth
-                      ? _loggedInWidget(model, context)
-                      : _loginForm(model, context)),
+        child: Container(
+          decoration: const BoxDecoration(
+              image: DecorationImage(
+                  image: AssetImage("assets/images/flut2.jpg"),
+                  fit: BoxFit.fill)),
+          child: Center(
+            child: Scaffold(
+              backgroundColor: Colors.transparent,
+              appBar: AppBar(
+                title: const Text('mtms.io'),
+                centerTitle: true,
+                backgroundColor: Colors.white24,
+              ),
+              body: SizedBox(
+                child: Form(
+                  key: _formKey,
+                  child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: isAuth
+                          ? _loggedInWidget(model, context)
+                          : _loginForm(model, context)),
+                ),
+              ),
             ),
           ),
         ),
@@ -108,7 +116,12 @@ class _CheckAuthState extends State<CheckAuth> {
                       licence: _licenceController.text,
                       password: _passwordController.text,
                     );
-                    _loggedInWidget(model, context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) =>
+                              _loggedInWidget(model, context)),
+                    );
                   }
                 },
               )
@@ -117,51 +130,27 @@ class _CheckAuthState extends State<CheckAuth> {
               ),
         const SizedBox(height: 20),
         TextButton(
-          onPressed: () {
-            //action
-          },
           child: const Text(
-            'Register here', //title
-            textAlign: TextAlign.end, //aligment
+            'Register',
           ),
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const Register()),
+            );
+          },
         ),
-        Container(
-            // child: Text(model.token),
-            ),
       ],
     );
   }
 
-  Column _loggedInWidget(HomeViewModel model, BuildContext context) {
-    return Column(
-      children: [
-        // !model.isBusy
-        //     ? ElevatedButton(
-        //         child: const Text('Logout'),
-        //         onPressed: () {
-        //           // model.logout();
-        //         },
-        //       )
-        //     : const Center(
-        //         child: CircularProgressIndicator(),
-        //       ),
-
-        // When no ticket
-        // NoTicketPage(),
-
-        // When there is ticket
-        const TicketSnip(),
-        ElevatedButton(
-          child: const Text('Log out!'),
-          onPressed: () {
-            model.logout();
-            _loginForm(model, context);
-          },
-        ), // Text(model.token),
-        Container(
-            // child: Text(model.token),
-            ),
-      ],
-    );
+  Scaffold _loggedInWidget(HomeViewModel model, BuildContext context) {
+    return Scaffold(
+        backgroundColor: Colors.transparent,
+        body: Column(
+          children: const [
+            TicketSnip(),
+          ],
+        ));
   }
 }

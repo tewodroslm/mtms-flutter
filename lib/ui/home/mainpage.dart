@@ -36,10 +36,20 @@ class _MyStatefulWidgetState extends State<MainContentPage> {
 
   @override
   Widget build(BuildContext context) {
+    final ButtonStyle style =
+        TextButton.styleFrom(primary: Theme.of(context).colorScheme.onPrimary);
     return Scaffold(
-      backgroundColor: Colors.indigo,
-      appBar:
-          AppBar(title: const Text('mtms.io'), backgroundColor: Colors.indigo),
+      backgroundColor: Colors.white24,
+      appBar: AppBar(
+          title: const Text('mtms.io'),
+          backgroundColor: Colors.white24,
+          actions: <Widget>[
+            TextButton(
+              style: style,
+              onPressed: () {},
+              child: const Text('Sign out'),
+            ),
+          ]),
       body: Center(
         child: _widgetOptions.elementAt(_selectedIndex),
       ),
@@ -48,22 +58,22 @@ class _MyStatefulWidgetState extends State<MainContentPage> {
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
             label: 'get',
-            backgroundColor: Colors.indigo,
+            backgroundColor: Colors.white12,
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.business),
             label: 'Business',
-            backgroundColor: Colors.indigo,
+            backgroundColor: Colors.white12,
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.school),
             label: 'School',
-            backgroundColor: Colors.indigo,
+            backgroundColor: Colors.white12,
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.settings),
             label: 'Settings',
-            backgroundColor: Colors.pink,
+            backgroundColor: Colors.white24,
           ),
         ],
         currentIndex: _selectedIndex,
